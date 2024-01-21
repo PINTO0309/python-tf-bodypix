@@ -18,6 +18,7 @@ from .decode_pose import decodePose
 
 
 LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
 
 
 kLocalMaximumRadius = 1

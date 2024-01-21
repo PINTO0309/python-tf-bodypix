@@ -11,6 +11,7 @@ from tf_bodypix.utils.image import write_image_to
 
 
 LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
 
 
 T_OutputSink = Callable[[np.ndarray], None]

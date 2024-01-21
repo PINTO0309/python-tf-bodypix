@@ -11,6 +11,7 @@ import cv2
 
 
 LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
 
 
 def create_fakewebcam(

@@ -14,6 +14,7 @@ from tf_bodypix.utils.io import get_file, strip_url_suffix
 
 
 LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
 
 
 T_ImageSource = ContextManager[Iterable[ImageArray]]

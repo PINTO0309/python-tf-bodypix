@@ -10,6 +10,7 @@ from tf_bodypix.bodypix_js_utils.keypoints import CONNECTED_PART_NAMES
 
 
 LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
 
 
 T_Color = Tuple[int, int, int]

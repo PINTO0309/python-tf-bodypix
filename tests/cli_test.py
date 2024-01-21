@@ -7,6 +7,7 @@ from tf_bodypix.cli import DEFAULT_MODEL_TFLITE_PATH, main
 
 
 LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
 
 
 EXAMPLE_IMAGE_URL = (

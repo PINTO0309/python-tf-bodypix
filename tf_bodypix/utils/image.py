@@ -22,6 +22,7 @@ except ImportError:
 
 
 LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
 
 
 ImageSize = namedtuple('ImageSize', ('height', 'width'))

@@ -15,6 +15,7 @@ from tf_bodypix.utils.image import (
 
 
 LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
 
 
 DEFAULT_WEBCAM_FOURCC = 'MJPG'

@@ -6,6 +6,7 @@ from typing import Iterable
 
 
 LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
 
 
 S3_NS = 'http://doc.s3.amazonaws.com/2006-03-01'

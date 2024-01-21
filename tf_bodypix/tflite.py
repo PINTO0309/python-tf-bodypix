@@ -12,6 +12,7 @@ except ImportError:
 
 
 LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
 
 
 def get_tflite_converter_for_tfjs_model_path(model_path: str) -> 'tf.lite.TFLiteConverter':

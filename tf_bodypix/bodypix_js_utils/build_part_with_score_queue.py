@@ -9,6 +9,7 @@ from tf_bodypix.bodypix_js_utils.types import PartWithScore, Part, T_ArrayLike_3
 
 
 LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
 
 
 def score_is_maximum_in_local_window(

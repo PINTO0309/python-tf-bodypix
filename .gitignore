@@ -7,3 +7,6 @@ build
 
 *.pyc
 *.tflite
+*.onnx
+*.engine
+*.profile

@@ -7,6 +7,7 @@ from tf_bodypix.model import BodyPixModelWrapper
 
 
 LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
 
 
 ANY_INT_FACTOR_1 = 5

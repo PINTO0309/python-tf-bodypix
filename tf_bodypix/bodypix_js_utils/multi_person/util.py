@@ -8,6 +8,7 @@ from ..keypoints import NUM_KEYPOINTS
 
 
 LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
 
 
 def getOffsetPoint(

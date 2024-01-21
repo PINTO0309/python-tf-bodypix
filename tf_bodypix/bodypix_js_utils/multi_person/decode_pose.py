@@ -8,6 +8,7 @@ from .util import getImageCoords, clamp, addVectors, getOffsetPoint
 
 
 LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
 
 
 parentChildrenTuples = [

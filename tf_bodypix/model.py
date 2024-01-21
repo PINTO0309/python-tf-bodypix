@@ -45,6 +45,7 @@ from tf_bodypix.bodypix_js_utils.multi_person.decode_multiple_poses import (
 
 
 LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
 
 
 PART_CHANNEL_INDEX_BY_NAME = {

@@ -4,6 +4,7 @@ from typing import Dict, List, Optional
 
 
 LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
 
 
 def _mean(a: List[float]) -> float:

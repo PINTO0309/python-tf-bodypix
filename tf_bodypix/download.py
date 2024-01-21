@@ -10,6 +10,7 @@ from tf_bodypix.utils.io import download_file_to, get_default_cache_dir
 
 
 LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
 
 
 _DOWNLOAD_URL_PREFIX = r'https://storage.googleapis.com/tfjs-models/savedmodel/bodypix/'

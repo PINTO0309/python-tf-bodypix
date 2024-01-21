@@ -24,6 +24,7 @@ from .types import Keypoint, Pose, Vector2D
 
 
 LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
 
 
 Padding = namedtuple('Padding', ('top', 'bottom', 'left', 'right'))
