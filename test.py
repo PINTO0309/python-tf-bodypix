@@ -28,6 +28,14 @@ image_array = tf.keras.preprocessing.image.img_to_array(image)
 result = bodypix_model.predict_single(image_array)
 
 # simple mask
+"""
+segments = logits = image = [1, 14, 21, 1]
+image = resized_and_padded.shape = [1, 209, 321, 1]
+sigmoid(resized_and_padded) = [1, 209, 321, 1]
+
+remove_padding_and_resize_backed = [426, 640, 1]
+mask = (remove_padding_and_resize_backed > 0.75).astype(np.int32), 0 or 1
+"""
 mask = result.get_mask(threshold=0.75)
 tf.keras.preprocessing.image.save_img(
     f'{output_path}/output-mask.jpg',
@@ -35,6 +43,23 @@ tf.keras.preprocessing.image.save_img(
 )
 
 # colored mask (separate colour for each body part)
+"""
+part_heatmaps = logits = image = [1, 14, 21, 24]
+image = resized_and_padded.shape = [1, 209, 321, 24]
+sigmoid(resized_and_padded) = [1, 209, 321, 24]
+
+remove_padding_and_resize_backed = [426, 640, 24]
+argmaxed = argmax(remove_padding_and_resize_backed, axis=3)
+
+# mask のうち argmax に該当するインデックス以外を -1 に置き換える
+argmaxed_replaced = \
+    np.where(
+        np.squeeze(mask, axis=-1),
+        argmaxed,
+        np.asarray([-1])
+    )
+colored_mask = argmaxed_replaced # 本家はカラーマップを充てたあとのRGB画像を返しているが必要なし
+"""
 colored_mask = result.get_colored_part_mask(mask)
 tf.keras.preprocessing.image.save_img(
     f'{output_path}/output-colored-mask.jpg',

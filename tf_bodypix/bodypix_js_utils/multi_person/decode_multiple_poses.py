@@ -57,19 +57,28 @@ def getInstanceScore(
 
 
 def decodeMultiplePoses(
-    scoresBuffer: TensorBuffer3D, offsetsBuffer: TensorBuffer3D,
+    scoresBuffer: TensorBuffer3D,
+    offsetsBuffer: TensorBuffer3D,
     displacementsFwdBuffer: TensorBuffer3D,
-    displacementsBwdBuffer: TensorBuffer3D, outputStride: int,
-    maxPoseDetections: int, scoreThreshold: float = 0.5, nmsRadius: float = 20
+    displacementsBwdBuffer: TensorBuffer3D,
+    outputStride: int,
+    maxPoseDetections: int,
+    scoreThreshold: float = 0.5,
+    nmsRadius: float = 20
 ) -> List[Pose]:
     poses: List[Pose] = []
 
+    # 結局 scoreThreshold でキーポイントをフィルタしてるだけ
+    # 複数人検出されることがあるので、キーポイントIDごとに最大検出人数分の値を抽出している
+    # 処理が複雑になるので無理に複数人検出を実装する必要はない
     queue = build_part_with_score_queue(
-        scoreThreshold, kLocalMaximumRadius, scoresBuffer
+        scoreThreshold, # scoreThreshold = 0.5
+        kLocalMaximumRadius, # kLocalMaximumRadius = 1
+        scoresBuffer # self.heatmap_logits
     )
     # LOGGER.debug('queue: %s', queue)
 
-    squaredNmsRadius = nmsRadius * nmsRadius
+    squaredNmsRadius = nmsRadius * nmsRadius # 40
 
     # Generate at most maxDetections object instances per image in
     # decreasing root part score order.
@@ -80,19 +89,44 @@ def decodeMultiplePoses(
         # Part-based non-maximum suppression: We reject a root candidate if it
         # is within a disk of `nmsRadius` pixels from the corresponding part of
         # a previously detected instance.
-        rootImageCoords = getImageCoords(
-            root.part, outputStride, offsetsBuffer
-        )
+        """
+        self.heatmap_logits.shape = scoresBuffer = [1, 14, 21, 17]
+        self.short_offsets.shape = offsetsBuffer = [1, 14, 21, 34]
+        self.displacement_fwd.shape = displacementsFwdBuffer = [1, 14, 21, 32]
+        self.displacement_bwd.shape = displacementsBwdBuffer = [1, 14, 21, 32]
+        output_stride = 16
+        maxPoseDetections = 2
+
+        rootImageCoords: 各yx座標に対して strides=16 を掛け算したあとに offset を加算したもの -> 関連性の高いキーポイントを距離 (radius) を基に検出するための距離計算にしか使ってない
+        """
+        rootImageCoords = \
+            getImageCoords(
+                part=root.part,
+                outputStride=outputStride,
+                offsets=offsetsBuffer
+            )
         if withinNmsRadiusOfCorrespondingPoint(
             poses, squaredNmsRadius, rootImageCoords, root.part.keypoint_id
         ):
             continue
 
         # Start a new detection instance at the position of the root.
-        keypoints = decodePose(
-            root, scoresBuffer, offsetsBuffer, outputStride, displacementsFwdBuffer,
-            displacementsBwdBuffer
-        )
+        """
+        self.heatmap_logits.shape = scoresBuffer = [1, 14, 21, 17]
+        self.short_offsets.shape = offsetsBuffer = [1, 14, 21, 34]
+        self.displacement_fwd.shape = displacementsFwdBuffer = [1, 14, 21, 32]
+        self.displacement_bwd.shape = displacementsBwdBuffer = [1, 14, 21, 32]
+        output_stride = 16
+        """
+        keypoints = \
+            decodePose(
+                root=root,
+                scores=scoresBuffer,
+                offsets=offsetsBuffer,
+                outputStride=outputStride,
+                displacementsFwd=displacementsFwdBuffer,
+                displacementsBwd=displacementsBwdBuffer,
+            )
 
         # LOGGER.debug('keypoints: %s', keypoints)
 

@@ -37,6 +37,11 @@ def build_part_with_score_queue(
     local_maximum_radius: float,
     scores: T_ArrayLike_3D
 ) -> Deque[PartWithScore]:
+    """
+    score_threshold # scoreThreshold = 0.5
+    local_maximum_radius # kLocalMaximumRadius = 1
+    scores # self.heatmap_logits [1, 14, 21, 17]
+    """
     height, width, num_keypoints = scores.shape[:3]
     part_with_scores = []
 

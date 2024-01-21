@@ -169,12 +169,20 @@ def resize_image_to(
     image_size: ImageSize,
     resize_method: Optional[str] = None
 ) -> np.ndarray:
+    """
+    segments = logits = image = image_array = [1, 14, 21, 1]
+    """
     if get_image_size(image_array) == image_size:
         LOGGER.debug('image has already desired size: %s', image_size)
         return image_array
 
     if tf is not None:
-        return _resize_image_to_using_tf(image_array, image_size, resize_method)
+        """
+        image_array [1, 14, 21, 1]
+        return risizse_bilinear [1, 209, 321, 1]
+        """
+        resized_image = _resize_image_to_using_tf(image_array, image_size, resize_method)
+        return resized_image
     return _resize_image_to_using_numpy(image_array, image_size, resize_method)
 
 

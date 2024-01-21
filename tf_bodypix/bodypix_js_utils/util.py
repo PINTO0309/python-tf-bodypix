@@ -237,6 +237,12 @@ def scale_and_crop_to_input_tensor_shape(
     apply_sigmoid_activation: bool = False,
     resize_method: Optional[str] = None
 ) -> np.ndarray:
+    """
+    segments = logits = image = [1, 14, 21, 1]
+    resized_and_padded.shape = [1, 209, 321, 1]
+    sigmoided = [1, 209, 321, 1]
+    remove_padding_and_resize_backed = [426, 640, 1]
+    """
     resized_and_padded = resize_image_to(
         image,
         ImageSize(height=resized_height, width=resized_width),
@@ -245,12 +251,13 @@ def scale_and_crop_to_input_tensor_shape(
     if apply_sigmoid_activation:
         resized_and_padded = get_sigmoid(resized_and_padded)
         LOGGER.debug('after sigmoid: %r', resized_and_padded.shape)
-    return remove_padding_and_resize_back(
+    remove_padding_and_resize_backed = remove_padding_and_resize_back(
         resized_and_padded,
         input_height, input_width,
         padding,
         resize_method=resize_method
     )
+    return remove_padding_and_resize_backed
 
 
 ZERO_VECTOR_2D = Vector2D(x=0, y=0)

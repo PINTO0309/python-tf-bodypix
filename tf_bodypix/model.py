@@ -336,6 +336,11 @@ class BodyPixResultWrapper:
         part_names: Optional[List[str]] = None,
         resize_method: Optional[str] = None
     ) -> np.ndarray:
+        """
+        mask.shape = [426, 640, 1] int32 0 ro 1
+        part_names = None
+        resize_method = None
+        """
         part_segmentation = self.get_scaled_part_segmentation(
             mask, part_names=part_names, resize_method=resize_method
         )
@@ -349,6 +354,14 @@ class BodyPixResultWrapper:
         assert self.short_offsets is not None
         assert self.displacement_fwd is not None
         assert self.displacement_bwd is not None
+        """
+        self.heatmap_logits.shape = scoresBuffer = [1, 14, 21, 17]
+        self.short_offsets.shape = offsetsBuffer = [1, 14, 21, 34]
+        self.displacement_fwd.shape = displacementsFwdBuffer = [1, 14, 21, 32]
+        self.displacement_bwd.shape = displacementsBwdBuffer = [1, 14, 21, 32]
+        output_stride = 16
+        maxPoseDetections = 2
+        """
         poses = decodeMultiplePoses(
             scoresBuffer=np.asarray(self.heatmap_logits[0]),
             offsetsBuffer=np.asarray(self.short_offsets[0]),

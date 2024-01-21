@@ -41,7 +41,9 @@ def getDisplacement(
 
 
 def getStridedIndexNearPoint(
-    point: Vector2D, outputStride: int, height: int,
+    point: Vector2D,
+    outputStride: int,
+    height: int,
     width: int
 ) -> Vector2D:
     # LOGGER.debug('point: %s', point)
@@ -56,46 +58,66 @@ def traverseToTargetKeypoint(  # pylint: disable=too-many-locals
     sourceKeypoint: Keypoint,
     targetKeypointId: int,
     scoresBuffer: TensorBuffer3D,
-    offsets: TensorBuffer3D, outputStride: int,
+    offsets: TensorBuffer3D,
+    outputStride: int,
     displacements: TensorBuffer3D,
     offsetRefineStep: int = 2
 ) -> Keypoint:
     height, width = scoresBuffer.shape[:2]
 
     # Nearest neighbor interpolation for the source->target displacements.
-    sourceKeypointIndices = getStridedIndexNearPoint(
-        sourceKeypoint.position, outputStride, height, width
-    )
+    sourceKeypointIndices = \
+        getStridedIndexNearPoint(
+            sourceKeypoint.position,
+            outputStride,
+            height,
+            width
+        )
 
-    displacement = getDisplacement(
-        edgeId, sourceKeypointIndices, displacements
-    )
+    displacement = \
+        getDisplacement(
+            edgeId,
+            sourceKeypointIndices,
+            displacements
+        )
 
     displacedPoint = addVectors(sourceKeypoint.position, displacement)
     targetKeypoint = displacedPoint
     for _ in range(offsetRefineStep):
-        targetKeypointIndices = getStridedIndexNearPoint(
-            targetKeypoint, outputStride, height, width
-        )
-
-        offsetPoint = getOffsetPoint(
-            targetKeypointIndices.y, targetKeypointIndices.x, targetKeypointId,
-            offsets
-        )
-
-        targetKeypoint = addVectors(
-            Vector2D(
-                x=targetKeypointIndices.x * outputStride,
-                y=targetKeypointIndices.y * outputStride
-            ),
-            Vector2D(
-                x=offsetPoint.x, y=offsetPoint.y
+        targetKeypointIndices = \
+            getStridedIndexNearPoint(
+                targetKeypoint,
+                outputStride,
+                height,
+                width
             )
-        )
 
-    targetKeyPointIndices = getStridedIndexNearPoint(
-        targetKeypoint, outputStride, height, width
-    )
+        offsetPoint = \
+            getOffsetPoint(
+                targetKeypointIndices.y,
+                targetKeypointIndices.x,
+                targetKeypointId,
+                offsets
+            )
+
+        targetKeypoint = \
+            addVectors(
+                Vector2D(
+                    x=targetKeypointIndices.x * outputStride,
+                    y=targetKeypointIndices.y * outputStride
+                ),
+                Vector2D(
+                    x=offsetPoint.x, y=offsetPoint.y
+                )
+            )
+
+    targetKeyPointIndices = \
+        getStridedIndexNearPoint(
+            targetKeypoint,
+            outputStride,
+            height,
+            width
+        )
     score = scoresBuffer[
         int(targetKeyPointIndices.y), int(targetKeyPointIndices.x), targetKeypointId
     ]
@@ -108,8 +130,11 @@ def traverseToTargetKeypoint(  # pylint: disable=too-many-locals
 
 
 def decodePose(
-    root: PartWithScore, scores: TensorBuffer3D, offsets: TensorBuffer3D,
-    outputStride: int, displacementsFwd: TensorBuffer3D,
+    root: PartWithScore,
+    scores: TensorBuffer3D,
+    offsets: TensorBuffer3D,
+    outputStride: int,
+    displacementsFwd: TensorBuffer3D,
     displacementsBwd: TensorBuffer3D
 ) -> Dict[int, Keypoint]:
     # numParts = scores.shape[2]
@@ -118,16 +143,26 @@ def decodePose(
     instanceKeypoints: Dict[int, Keypoint] = {}
     # Start a new detection instance at the position of the root.
     # const {part: rootPart, score: rootScore} = root;
+    """
+    self.heatmap_logits.shape = scoresBuffer = [1, 14, 21, 17]
+    self.short_offsets.shape = offsetsBuffer = [1, 14, 21, 34]
+    self.displacement_fwd.shape = displacementsFwdBuffer = [1, 14, 21, 32]
+    self.displacement_bwd.shape = displacementsBwdBuffer = [1, 14, 21, 32]
+    output_stride = 16
+
+    rootPoint: 各yx座標に対して strides=16 を掛け算したあとに offset を加算したもの
+    """
     rootPoint = getImageCoords(root.part, outputStride, offsets)
 
-    instanceKeypoints[root.part.keypoint_id] = Keypoint(
-        score=root.score,
-        part=PART_NAMES[root.part.keypoint_id],
-        position=rootPoint
-    )
+    instanceKeypoints[root.part.keypoint_id] = \
+        Keypoint(
+            score=root.score,
+            part=PART_NAMES[root.part.keypoint_id],
+            position=rootPoint
+        )
 
-    # Decode the part positions upwards in the tree, following the backward
-    # displacements.
+    # Decode the part positions upwards in the tree, following the backward displacements.
+    # 後方への変位に従って、ツリーの上方へ部品位置をデコードする。
     for edge in reversed(range(numEdges)):
         sourceKeypointId = parentToChildEdges[edge]
         targetKeypointId = childToParentEdges[edge]
@@ -135,13 +170,19 @@ def decodePose(
             instanceKeypoints.get(sourceKeypointId)
             and not instanceKeypoints.get(targetKeypointId)
         ):
-            instanceKeypoints[targetKeypointId] = traverseToTargetKeypoint(
-                edge, instanceKeypoints[sourceKeypointId], targetKeypointId, scores,
-                offsets, outputStride, displacementsBwd
-            )
+            instanceKeypoints[targetKeypointId] = \
+                traverseToTargetKeypoint(
+                    edge,
+                    instanceKeypoints[sourceKeypointId],
+                    targetKeypointId,
+                    scores,
+                    offsets,
+                    outputStride,
+                    displacementsBwd
+                )
 
-    # Decode the part positions downwards in the tree, following the forward
-    # displacements.
+    # Decode the part positions downwards in the tree, following the forward displacements.
+    # 前方の変位に従って、ツリーの下方に部品位置をデコードする。
     for edge in range(numEdges):
         sourceKeypointId = childToParentEdges[edge]
         targetKeypointId = parentToChildEdges[edge]
@@ -149,9 +190,15 @@ def decodePose(
             instanceKeypoints.get(sourceKeypointId)
             and not instanceKeypoints.get(targetKeypointId)
         ):
-            instanceKeypoints[targetKeypointId] = traverseToTargetKeypoint(
-                edge, instanceKeypoints[sourceKeypointId], targetKeypointId, scores,
-                offsets, outputStride, displacementsFwd
-            )
+            instanceKeypoints[targetKeypointId] = \
+                traverseToTargetKeypoint(
+                    edge,
+                    instanceKeypoints[sourceKeypointId],
+                    targetKeypointId,
+                    scores,
+                    offsets,
+                    outputStride,
+                    displacementsFwd
+                )
 
     return instanceKeypoints
